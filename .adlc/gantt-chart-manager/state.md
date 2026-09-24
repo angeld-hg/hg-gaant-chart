@@ -58,3 +58,4 @@ This is a fresh repo so we can interate on ideas together to come up with someth
 - 2026-09-24: S8 DONE (chart.spec 12, full e2e 32/32, vitest 124, lint/typecheck) verified by elephant; screenshot reviewed; W6 committed
 - 2026-09-24: S10 DONE (roster.spec 5; elephant re-run: first run 2/5 in 23s under concurrent S9/S11 load, then 5/5 and 15/15 with --repeat-each=3 -> possible load flakiness, watch in verify). Note: roster drawer and task editor drawer may overlap (S13/review). Committed
 - 2026-09-24: S11 DONE (drag.spec 15 + chart.spec 12 = 27/27 re-run by elephant) committed; found timeline-shift glitch when earliest task moves (Chart.tsx scrollLeft compensation) -> fix routed to implementer
+- 2026-09-24: S9 DONE (tasks.spec 17 re-run by elephant, vitest 153); A->A not offered in UI (API rejects; plan test list contradiction noted) committed; W7 complete; Chart.tsx scroll fix still running
