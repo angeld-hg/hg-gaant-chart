@@ -29,7 +29,7 @@ export type AppAction =
   | { type: "project-renamed"; project: ProjectSummary }
   | { type: "project-deleted"; id: number }
   | { type: "project-opened"; project: ProjectDetail | null }
-  | { type: "mutation-applied"; result: MutationResult }
+  | { type: "mutation-applied"; result: MutationResult; opensCreatedTask?: boolean }
   | { type: "palette-loaded"; palette: Palette }
   | { type: "zoom-set"; zoom: Zoom }
   | { type: "error-set"; message: string }
@@ -55,6 +55,18 @@ function withSummaryOf(projects: ProjectSummary[], detail: ProjectDetail): Proje
   return projects.map((p) =>
     p.id === detail.id ? { id: p.id, name: detail.name, task_count: detail.tasks.length } : p,
   );
+}
+
+/** A new-task draft that is still open moves on to the task its create made. */
+function editorAfterCreate(
+  editor: AppState["editor"],
+  createdId: number | null,
+  project: ProjectDetail,
+): AppState["editor"] {
+  if (editor?.taskId !== "new" || createdId === null) {
+    return editor;
+  }
+  return project.tasks.some((t) => t.id === createdId) ? { taskId: createdId } : editor;
 }
 
 /** An editor on a task that no longer exists (deleted, or another project) closes. */
@@ -117,7 +129,7 @@ export function reducer(state: AppState, action: AppAction): AppState {
     }
 
     case "mutation-applied": {
-      const { project, changed_task_ids } = action.result;
+      const { project, changed_task_ids, created_id } = action.result;
       const projects = withSummaryOf(state.projects, project);
       if (state.current?.id !== project.id) {
         // A late response for a project the user has since left: keep what is on screen.
@@ -127,7 +139,9 @@ export function reducer(state: AppState, action: AppAction): AppState {
         ...state,
         projects,
         current: project,
-        editor: editorFor(state.editor, project),
+        editor: action.opensCreatedTask
+          ? editorAfterCreate(state.editor, created_id, project)
+          : editorFor(state.editor, project),
         lastChangedTaskIds: changed_task_ids,
       };
     }

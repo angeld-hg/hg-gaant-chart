@@ -240,6 +240,59 @@ describe("mutation results", () => {
       taskId: "new",
     });
   });
+
+  describe("a task create (CR3)", () => {
+    const created = detail(1, [task(10), task(12)]);
+    const createResult: MutationResult = {
+      project: created,
+      changed_task_ids: [12],
+      created_id: 12,
+    };
+
+    it("moves the new-task editor to the task named by created_id", () => {
+      const draft = withState({ current: detail(1, [task(10)]), editor: { taskId: "new" } });
+
+      const next = reducer(draft, {
+        type: "mutation-applied",
+        result: createResult,
+        opensCreatedTask: true,
+      });
+
+      expect(next.editor).toEqual({ taskId: 12 });
+    });
+
+    it("keeps the draft open for another write's result, whatever ids it changed", () => {
+      const draft = withState({ current: detail(1, [task(10)]), editor: { taskId: "new" } });
+
+      const dragged = reducer(draft, {
+        type: "mutation-applied",
+        result: result(detail(1, [task(10, { start: "2026-10-12" })]), [10]),
+      });
+      // A person or dependency create also carries created_id, but it is not a task.
+      const personAdded: MutationResult = {
+        project: detail(1, [task(10)]),
+        changed_task_ids: [],
+        created_id: 10,
+      };
+      const withPerson = reducer(draft, { type: "mutation-applied", result: personAdded });
+
+      expect(dragged.editor).toEqual({ taskId: "new" });
+      expect(withPerson.editor).toEqual({ taskId: "new" });
+    });
+
+    it("leaves the editor alone when the user has moved off the draft during the create", () => {
+      const closed = withState({ current: detail(1, [task(10)]), editor: null });
+      const other = withState({ current: detail(1, [task(10)]), editor: { taskId: 10 } });
+      const action = {
+        type: "mutation-applied",
+        result: createResult,
+        opensCreatedTask: true,
+      } as const;
+
+      expect(reducer(closed, action).editor).toBeNull();
+      expect(reducer(other, action).editor).toEqual({ taskId: 10 });
+    });
+  });
 });
 
 describe("errors", () => {

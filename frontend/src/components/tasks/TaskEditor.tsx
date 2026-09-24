@@ -327,30 +327,20 @@ function ExistingTaskEditor(props: { task: Task; project: ProjectDetail }) {
   );
 }
 
+// On success the store moves the editor to the created task (by `created_id`), so this form
+// only has to send the create.
 function NewTaskEditor() {
-  const { lastChangedTaskIds } = useAppState();
   const { createTask, openTaskEditor } = useActions();
   const [name, setName] = useState("");
   const [start, setStart] = useState(() => todayLocal());
   const [duration, setDuration] = useState("1");
   const [busy, setBusy] = useState(false);
   const nameRef = useRef<HTMLInputElement | null>(null);
-  // Set while a create is in flight, so the editor can move on to the new task (the response
-  // lists only the new task as changed).
-  const awaitingCreate = useRef(false);
   const ids = { name: useId(), start: useId(), duration: useId() };
 
   useEffect(() => {
     nameRef.current?.focus();
   }, []);
-
-  useEffect(() => {
-    const created = lastChangedTaskIds[0];
-    if (awaitingCreate.current && created !== undefined) {
-      awaitingCreate.current = false;
-      openTaskEditor(created);
-    }
-  }, [lastChangedTaskIds, openTaskEditor]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -358,16 +348,12 @@ function NewTaskEditor() {
       return;
     }
     setBusy(true);
-    awaitingCreate.current = true;
     const parsed = parseNumberField(duration);
-    const result = await createTask({
+    await createTask({
       name,
       start,
       ...(parsed === null ? {} : { duration: parsed }),
     });
-    if (!result.ok) {
-      awaitingCreate.current = false;
-    }
     setBusy(false);
   }
 

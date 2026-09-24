@@ -1,6 +1,6 @@
 // The app store (plan contract C6): a reducer in context plus async actions that talk to the API.
 // Every project-scoped write replaces `state.current` with the server's ProjectDetail, so the
-// client never schedules anything itself (D9, D11).
+// client never schedules anything itself (D9, D11). Those writes run one at a time (createMutator).
 import {
   createContext,
   type ReactNode,
@@ -21,7 +21,13 @@ import type {
   TaskPatch,
 } from "../api/types.ts";
 import type { Zoom } from "../timeline/scale.ts";
-import { type AppState, type ConfirmRequest, initialState, reducer } from "./reducer.ts";
+import {
+  type AppAction,
+  type AppState,
+  type ConfirmRequest,
+  initialState,
+  reducer,
+} from "./reducer.ts";
 
 export type { AppState, ConfirmRequest } from "./reducer.ts";
 
@@ -93,6 +99,41 @@ function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+export interface MutateOptions {
+  /** Set by createTask: an open new-task editor moves on to the task named by `created_id`. */
+  opensCreatedTask?: boolean;
+}
+
+export type Mutate = (
+  run: () => Promise<MutationResult>,
+  options?: MutateOptions,
+) => Promise<ActionResult>;
+
+/**
+ * Project writes go out one at a time, in the order they were issued. Each response is a whole
+ * ProjectDetail, so two writes in flight at once could land out of order and leave the older
+ * snapshot on screen; waiting for the previous write means the latest one always wins.
+ */
+export function createMutator(
+  dispatch: (action: AppAction) => void,
+  fail: (error: unknown) => ActionResult,
+): Mutate {
+  let previous: Promise<unknown> = Promise.resolve();
+  return (run, options = {}) => {
+    const next = previous.then(async (): Promise<ActionResult> => {
+      try {
+        const result = await run();
+        dispatch({ type: "mutation-applied", result, ...options });
+        return { ok: true };
+      } catch (error) {
+        return fail(error);
+      }
+    });
+    previous = next;
+    return next;
+  };
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const stateRef = useRef(state);
@@ -148,15 +189,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    async function mutate(run: () => Promise<MutationResult>): Promise<ActionResult> {
-      try {
-        const result = await run();
-        dispatch({ type: "mutation-applied", result });
-        return { ok: true };
-      } catch (error) {
-        return fail(error);
-      }
-    }
+    const mutate = createMutator(dispatch, fail);
 
     function openProjectId(): number | null {
       return stateRef.current.current?.id ?? null;
@@ -233,7 +266,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const projectId = openProjectId();
         return projectId === null
           ? Promise.resolve(noProject())
-          : mutate(() => api.createTask(projectId, input));
+          : mutate(() => api.createTask(projectId, input), { opensCreatedTask: true });
       },
 
       updateTask: (id, patch) => mutate(() => api.updateTask(id, patch)),
