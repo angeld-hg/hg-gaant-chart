@@ -2,7 +2,7 @@
 # Verifier throwaway: round trip of projects with deps + milestone across two DBs; a true early-start import.
 set -u
 ROOT=/Users/angel.difo/Library/CloudStorage/OneDrive-Hg/Desktop/HG-Catalyst-Projects/hg-gaant-chart
-PORT=8290; B=http://localhost:$PORT; W=/tmp/gver/live; J='content-type: application/json'
+PORT=${GV_PORT:-8290}; B=http://localhost:$PORT; W=${GV_DIR:-/tmp/gver/live}; J='content-type: application/json'
 start() { (cd $ROOT/backend && GANTT_DB_PATH=$1 nohup uv run uvicorn app.main:app --port $PORT >$W/api2.log 2>&1 & echo $! >$W/api.pid)
   for i in $(seq 1 80); do curl -sf $B/health >/dev/null && return; sleep 0.25; done; echo "SERVER DID NOT START"; }
 stop() { pkill -P $(cat $W/api.pid) 2>/dev/null; kill $(cat $W/api.pid) 2>/dev/null

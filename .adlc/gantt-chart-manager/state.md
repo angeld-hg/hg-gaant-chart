@@ -76,3 +76,5 @@ This is a fresh repo so we can interate on ideas together to come up with someth
 - 2026-09-24: CR2+D16 DONE (pytest 379 verified by elephant) committed
 - 2026-09-24: CR1+CR3 DONE (write queue in store; created_id opens editor; vitest 163 verified by elephant) committed
 - 2026-09-24: CR4+CR6+DD1 DONE; full gate by elephant: lint/typecheck OK, pytest 379, vitest 163, e2e 77/77. All review-1 fixes committed. Round 2: code-review + diff-drift + re-verify (CR1 changed behaviour); old verification moved to verification-1.md
+- 2026-09-24: review round 2: code-review APPROVE (CR7 minor + D17 raised), diff-drift PROCEED; re-verify run 2 VERIFIED 43/43 on 332b5bc (AC25 load-sensitive, A/B shows environment not CR1)
+- 2026-09-24: D17 decided: keep D15, load noise (user); D18 decided: fix CR7 now (user)

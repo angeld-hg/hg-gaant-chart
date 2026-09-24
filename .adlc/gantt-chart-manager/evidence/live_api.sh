@@ -2,7 +2,7 @@
 # Verifier throwaway: live API evidence on a real socket (port 8290) with a temp DB.
 set -u
 ROOT=/Users/angel.difo/Library/CloudStorage/OneDrive-Hg/Desktop/HG-Catalyst-Projects/hg-gaant-chart
-PORT=8290; B=http://localhost:$PORT; W=/tmp/gver/live; mkdir -p $W; rm -f $W/*.db
+PORT=${GV_PORT:-8290}; B=http://localhost:$PORT; W=${GV_DIR:-/tmp/gver/live}; mkdir -p $W; rm -f $W/*.db
 start() { (cd $ROOT/backend && GANTT_DB_PATH=$1 nohup uv run uvicorn app.main:app --port $PORT >$W/api.log 2>&1 & echo $! >$W/api.pid)
   for i in $(seq 1 80); do curl -sf $B/health >/dev/null && return; sleep 0.25; done; echo "SERVER DID NOT START"; }
 stop() { pkill -P $(cat $W/api.pid) 2>/dev/null; kill $(cat $W/api.pid) 2>/dev/null

@@ -163,3 +163,24 @@
   - A) Keep the trim, pin it with a test, and note it in spec.md as a clarification of AC24. Cleaner names.
   - B) Drop the trim (literal AC24). A name can end with a double space before the suffix.
 - Recommendation: A, because it is already the recorded interpretation and gives nicer names.
+
+## D17: Revisit D15 now that AC25's release-to-cascade margin looks thin under load?
+- Status: decided
+- Decision: A) Keep D15; treat as load noise; rerun perf on a quiet machine before demo, by user, 2026-09-24.
+- Raised by: code-reviewer round 2 (reviews/code-review-2.md)
+- Context: perf.spec.ts:213 measured 266 ms (FAIL) on a heavily loaded full run, 146 ms on a second full run, 85 ms alone; round 1 measured 25-76 ms. The CR1 queue adds negligible delay when idle.
+- Options:
+  - A) Keep D15; treat as load noise; rerun on a quiet machine before merge.
+  - B) Take D15 option B: reuse unchanged ChartItems so memo skips (real headroom; more code, small stale-render risk).
+  - C) Keep code; measure the median of several drags after warm-up (less noisy; changes how the test measures).
+- Recommendation: A, because the failure came from an overloaded run and clean runs pass.
+
+## D18: Fix CR7 (project rename bypasses the write queue) now, or waive it?
+- Status: decided
+- Decision: A) Fix now; re-verify afterwards, by user, 2026-09-24.
+- Raised by: code-reviewer round 2 (reviews/code-review-2.md CR7)
+- Context: A narrow race: rename a project while a task write is in flight; if responses arrive out of order the old name reappears until the next write. Fixing touches store.tsx again, which needs one more re-verify.
+- Options:
+  - A) Fix now: route renameProject through the same queue plus a store test; re-run verify afterwards.
+  - B) Waive: record as a known minor issue; ship as is.
+- Recommendation: A, because it is the same class as CR1, the fix is small, and it keeps the "server is the single authority" promise intact.

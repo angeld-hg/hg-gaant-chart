@@ -2,7 +2,7 @@
 import { createRequire } from "node:module";
 const require = createRequire("/Users/angel.difo/Library/CloudStorage/OneDrive-Hg/Desktop/HG-Catalyst-Projects/hg-gaant-chart/frontend/package.json");
 const { chromium } = require("@playwright/test");
-const API = "http://localhost:8290", WEB = "http://localhost:5290", OUT = process.argv[2];
+const API = `http://localhost:${process.env.GV_PORT ?? 8290}`, WEB = `http://localhost:${process.env.GV_WEB_PORT ?? 5290}`, OUT = process.argv[2];
 const j = async (method, path, body) => {
   const r = await fetch(API + path, { method, headers: { "content-type": "application/json" }, body: body && JSON.stringify(body) });
   return r.status === 204 ? null : r.json();

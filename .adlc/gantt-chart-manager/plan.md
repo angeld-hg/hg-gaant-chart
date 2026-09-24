@@ -306,6 +306,7 @@ E2E helpers (S7), in `frontend/e2e/helpers/api.ts`, take the Playwright `APIRequ
 ### S6: Backend JSON export and import
 - Covers: AC21, AC22, AC23, AC24 (API), AC40 (import limits)
 - Files: `backend/app/transfer/__init__.py` (new), `backend/app/transfer/export.py` (new), `backend/app/transfer/importer.py` (new), `backend/app/transfer/naming.py` (new), `backend/app/routes/transfer.py` (new), `backend/app/routes/__init__.py` (change), `backend/tests/test_export.py` (new), `backend/tests/test_import.py` (new), `backend/tests/test_roundtrip.py` (new), `backend/tests/fixtures/` (new, sample files)
+- (Amended after review, CR2) `POST /api/import` returns 415 `unsupported_media_type` unless the Content-Type is `application/json` (a charset parameter is allowed); nothing is read or written.
 - Depends on: S5
 - Parallel: yes (with S7)
 - Steps:
@@ -319,6 +320,7 @@ E2E helpers (S7), in `frontend/e2e/helpers/api.ts`, take the Playwright `APIRequ
 ### S7: Frontend shell: API client, store, projects UI, dialogs, layout
 - Covers: AC1, AC2, AC34, AC35 (no-projects state), AC37 (layout skeleton), AC41 (project delete confirmation)
 - Files: `frontend/src/api/types.ts` (new), `frontend/src/api/client.ts` (new), `frontend/src/api/client.test.ts` (new), `frontend/src/state/reducer.ts` (new), `frontend/src/state/reducer.test.ts` (new), `frontend/src/state/store.tsx` (new), `frontend/src/layout.ts` (new), `frontend/src/App.tsx` (change), `frontend/src/main.tsx` (change), `frontend/src/styles/app.css` (new), `frontend/src/components/shell/AppShell.tsx` (new), `frontend/src/components/shell/ProjectList.tsx` (new), `frontend/src/components/shell/Toolbar.tsx` (new), `frontend/src/components/shell/ProjectView.tsx` (new), `frontend/src/components/shell/ConfirmDialog.tsx` (new), `frontend/src/components/shell/ErrorToast.tsx` (new), stubs `frontend/src/components/chart/Chart.tsx`, `frontend/src/components/tasks/TaskPanel.tsx`, `frontend/src/components/tasks/TaskEditor.tsx`, `frontend/src/components/roster/RosterPanel.tsx`, `frontend/src/components/io/TransferControls.tsx` (new, stubs only, later owned by S8/S9/S10/S12), `frontend/e2e/helpers/api.ts` (new), `frontend/e2e/projects.spec.ts` (new)
+- (Amended after review, CR1/CR3) `frontend/src/state/store.test.ts` (new). Project-scoped writes (task, dependency, person) run one at a time through a single promise chain in the store, so responses are applied in the order the writes were issued. A task create opens its editor on `created_id`.
 - Depends on: S4, S5 (e2e helpers seed tasks and deps). Built against C2/C6.
 - Parallel: yes (with S6)
 - Steps:
@@ -333,6 +335,7 @@ E2E helpers (S7), in `frontend/e2e/helpers/api.ts`, take the Playwright `APIRequ
 ### S8: Chart rendering: bars, milestones, headers, zoom, weekends, arrows, critical path, project end
 - Covers: AC3 (bar spans 3 columns), AC7 (diamond), AC8 (progress fill), AC9 (colour and name on bar and diamond), AC10 (arrows), AC14, AC15 (visual), AC16 (renders from server state), AC19, AC27, AC35 (empty timeline, no project end, no critical), AC38 (bar and diamond labels use the pair), AC42 (row order), AC43
 - Files: `frontend/src/components/chart/Chart.tsx` (change, replaces the stub), `frontend/src/components/chart/TimelineHeader.tsx` (new), `frontend/src/components/chart/Bars.tsx` (new), `frontend/src/components/chart/Arrows.tsx` (new), `frontend/src/components/chart/WeekendShading.tsx` (new), `frontend/src/components/chart/colours.ts` (new), `frontend/src/components/chart/colours.test.ts` (new), `frontend/src/styles/chart.css` (new), `frontend/e2e/chart.spec.ts` (new)
+- (Amended after review, DD3) `frontend/e2e/chart-scroll.spec.ts` (new) and a `Chart.tsx` scrollLeft compensation: when `range.start` changes without a zoom change, the visible dates stay put.
 - Depends on: S3, S7 (and S5 for seeding)
 - Parallel: yes (with S12)
 - Steps:
