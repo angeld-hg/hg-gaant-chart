@@ -26,7 +26,9 @@ def test_export_import_export_is_byte_identical_across_databases(tmp_path: Path)
 def test_imported_project_survives_a_restart(tmp_path: Path) -> None:
     db_path = str(tmp_path / "restart.db")
     with TestClient(create_app(db_path)) as first:
-        response = first.post("/api/import", content=GOLDEN.read_bytes())
+        response = first.post(
+            "/api/import", content=GOLDEN.read_bytes(), headers={"content-type": "application/json"}
+        )
         assert response.status_code == 201, response.text
         project_id = response.json()["id"]
 
@@ -58,6 +60,8 @@ def test_round_trip_of_a_larger_project_is_byte_identical(tmp_path: Path) -> Non
         original = export(first, pid)
 
     with TestClient(create_app(str(tmp_path / "big-two.db"))) as second:
-        response = second.post("/api/import", content=original)
+        response = second.post(
+            "/api/import", content=original, headers={"content-type": "application/json"}
+        )
         assert response.status_code == 201, response.text
         assert export(second, response.json()["id"]) == original

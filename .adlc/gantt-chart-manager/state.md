@@ -2,7 +2,7 @@
 feature: gantt-chart-manager
 phase: review
 updated: 2026-09-24
-next: verify gate with user, then angel:review
+next: dispatch code-reviewer + drift-checker (diff) in parallel
 verification: required
 ---
 
@@ -68,3 +68,9 @@ This is a fresh repo so we can interate on ideas together to come up with someth
 - 2026-09-24: all 13 slices DONE; elephant ran just check on 34eefbf: lint/typecheck clean, pytest 370, vitest 156, e2e 76/76
 - 2026-09-24: user approved implement gate; verify started
 - 2026-09-24: verification VERIFIED 43/43, no regressions (reviews/verification.md); note: AC16 dep add/remove lacks a committed e2e test
+- 2026-09-24: user approved verify gate; review started
+- 2026-09-24: review round 1: code-review CHANGES_REQUESTED (1 major CR1 out-of-order responses, 5 minor), diff-drift PROCEED (DD1 AC16 test gap)
+- 2026-09-24: D15 decided: correct Bars.tsx comment only (user); D16 decided: keep trim after shortening, pin with test, AC24 clarified (user)
+- 2026-09-24: elephant amended spec AC24 (D16) and plan S9 test list (DD2); fixes CR1+CR3, CR2+D16 test, CR4+CR6+DD1 routed to 3 implementers
+- 2026-09-24: CR2 fix BLOCKED on 2 test_roundtrip.py imports lacking Content-Type (now correctly 415); lane widened to that file
+- 2026-09-24: CR2+D16 DONE (pytest 379 verified by elephant) committed

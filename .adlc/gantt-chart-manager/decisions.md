@@ -143,3 +143,23 @@
   - B) Measure against a production build (vite build + preview) with no warm-up. Most honest "real user" number; adds a build step and a preview server to the perf run.
   - C) Cold dev server, no warm-up. Strictest, but it measures Vite and sits close to the budget (flaky).
 - Recommendation: A, because the dev-compile cost isn't something users of a built app would ever pay, and the margin (580 ms vs 2000 ms) is wide.
+
+## D15: Should the chart actually skip re-rendering unchanged bars, or just correct the misleading comment? (CR4)
+- Status: decided
+- Decision: A) Correct the comment only, by user, 2026-09-24.
+- Raised by: code-reviewer (reviews/code-review.md CR4)
+- Context: Bars.tsx says only the changed row re-renders, but Chart.tsx rebuilds every ChartItem per mutation so memo never skips. AC25 passes with a wide margin (~25-76 ms vs 200 ms).
+- Options:
+  - A) Correct the comment only. No behaviour change, no risk; perf already well within budget.
+  - B) Reuse unchanged ChartItem objects so memo works. Real optimisation and headroom for bigger projects; more code and a small risk of stale-render bugs.
+- Recommendation: A, because the budget is met with a wide margin and the goal is a demo, not scale.
+
+## D16: When an imported name is shortened to fit its suffix, should trailing spaces be trimmed? (CR5)
+- Status: decided
+- Decision: A) Keep the trim, pin it with a test, note in AC24, by user, 2026-09-24.
+- Raised by: code-reviewer (reviews/code-review.md CR5)
+- Context: AC24 says the name is "shortened from its end just enough for the suffix to fit". The planner's Spec interpretations (following a round-2 spec-review nit) chose to trim trailing spaces after shortening, so "Big launch (2)" never becomes "Big  (2)". The drift checker accepted this as recorded.
+- Options:
+  - A) Keep the trim, pin it with a test, and note it in spec.md as a clarification of AC24. Cleaner names.
+  - B) Drop the trim (literal AC24). A name can end with a double space before the suffix.
+- Recommendation: A, because it is already the recorded interpretation and gives nicer names.

@@ -31,6 +31,17 @@ def export_project(project_id: int, conn: db.Conn) -> Response:
     )
 
 
+def _require_json(request: Request) -> None:
+    """Refuse bodies not declared as JSON, so a cross-site "simple" POST can't import (CR2)."""
+    media_type = request.headers.get("content-type", "").split(";", 1)[0].strip().lower()
+    if media_type != "application/json":
+        raise ApiError(
+            415,
+            "unsupported_media_type",
+            "The import must be sent as application/json, so it was not imported.",
+        )
+
+
 def _too_large() -> ApiError:
     return ApiError(
         413, "import_too_large", "The file is larger than 5 MB, so it was not imported."
@@ -106,6 +117,7 @@ def _store(conn: sqlite3.Connection, doc: ValidDoc) -> ProjectDetail:
 
 @router.post("/import", status_code=201)
 async def import_project(request: Request, conn: db.Conn) -> ProjectDetail:
+    _require_json(request)
     body = await _read_limited(request)
     try:
         doc = validate(parse_json(body))

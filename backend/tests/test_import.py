@@ -338,10 +338,49 @@ def test_file_over_5_mb_is_rejected_when_streamed_without_a_length(api: Api) -> 
         for _ in range(6):
             yield b" " * (1024 * 1024)
 
-    response = api.client.post("/api/import", content=chunks())
+    response = api.client.post(
+        "/api/import", content=chunks(), headers={"content-type": "application/json"}
+    )
 
     assert_error(response, 413, "import_too_large")
     assert project_names(api.client) == []
+
+
+@pytest.mark.parametrize(
+    "content_type",
+    [
+        pytest.param("text/plain", id="text-plain"),
+        pytest.param("application/x-www-form-urlencoded", id="form"),
+        pytest.param("multipart/form-data; boundary=x", id="multipart"),
+        pytest.param("application/jsonx", id="json-lookalike"),
+        pytest.param(None, id="missing"),
+    ],
+)
+def test_import_refuses_a_body_that_is_not_declared_as_json(
+    api: Api, content_type: str | None
+) -> None:
+    """A cross-site "simple" POST (text/plain, form) must not create a project (CR2)."""
+    headers = {} if content_type is None else {"content-type": content_type}
+    before = project_names(api.client)
+
+    response = api.client.post("/api/import", content=GOLDEN.read_bytes(), headers=headers)
+
+    error = assert_error(response, 415, "unsupported_media_type")
+    assert "application/json" in error["message"]
+    assert project_names(api.client) == before
+
+
+@pytest.mark.parametrize(
+    "content_type",
+    ["application/json", "application/json; charset=utf-8", "Application/JSON ; charset=UTF-8"],
+)
+def test_import_accepts_json_with_or_without_a_charset(api: Api, content_type: str) -> None:
+    response = api.client.post(
+        "/api/import", content=GOLDEN.read_bytes(), headers={"content-type": content_type}
+    )
+
+    assert response.status_code == 201, response.text
+    assert project_names(api.client) == ["Launch"]
 
 
 def test_importer_never_adjusts_dates_even_when_a_push_would_fix_them(api: Api) -> None:
@@ -388,6 +427,18 @@ def test_long_names_are_shortened_to_fit_the_suffix(api: Api) -> None:
 
     assert name == "L" * 96 + " (2)"
     assert len(name) == 100
+
+
+def test_shortening_removes_spaces_left_at_the_cut_before_the_suffix(api: Api) -> None:
+    """D16: cut just enough for the suffix, then trim the trailing spaces the cut exposed."""
+    long_name = "x" * 93 + "   " + "tail"  # 100 chars; keeping 96 leaves "x" * 93 + "   "
+    api.project(long_name)
+    doc = golden_doc()
+    doc["project"]["name"] = long_name
+
+    name = import_ok(api.client, doc)["name"]
+
+    assert name == "x" * 93 + " (2)"
 
 
 def test_existing_projects_are_never_modified(api: Api) -> None:
