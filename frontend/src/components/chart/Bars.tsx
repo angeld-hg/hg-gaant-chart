@@ -1,9 +1,14 @@
 // Task bars and milestone diamonds, one row per task in creation order (AC3, AC7, AC8, AC9, AC42).
 // Every item is memoised on its own props, so a change to one task re-renders only its row.
+// Bars and diamonds can be dragged to move them, and bars resized by their edge handles (S11).
 import { type CSSProperties, memo } from "react";
 import type { Task } from "../../api/types.ts";
 import { ROW_HEIGHT } from "../../layout.ts";
+import { useAppState } from "../../state/store.tsx";
+import { daysBetween } from "../../timeline/dates.ts";
+import { PX_PER_DAY, type Zoom } from "../../timeline/scale.ts";
 import type { ColourPair } from "./colours.ts";
+import { type DragDates, useBarDrag } from "./useBarDrag.ts";
 
 export const BAR_HEIGHT = 24;
 export const MILESTONE_SIZE = 16;
@@ -81,14 +86,58 @@ function AssigneeTag(props: { item: ChartItem }) {
   );
 }
 
-function classNames(base: string, item: ChartItem): string {
-  return [base, item.critical && "critical", item.changed && "changed"].filter(Boolean).join(" ");
+function classNames(base: string, item: ChartItem, dragging: boolean): string {
+  return [base, item.critical && "critical", item.changed && "changed", dragging && "dragging"]
+    .filter(Boolean)
+    .join(" ");
 }
 
-const TaskBar = memo(function TaskBar(props: { item: ChartItem; onOpen: (id: number) => void }) {
-  const { item, onOpen } = props;
+/** Where to draw an item: its own geometry, or shifted and resized to the dragged dates. */
+function drawnGeometry(
+  item: ChartItem,
+  proposal: DragDates | null,
+  zoom: Zoom,
+): { x: number; width: number } {
+  if (proposal === null) {
+    return { x: item.x, width: item.width };
+  }
+  const px = PX_PER_DAY[zoom];
+  return {
+    x: item.x + daysBetween(item.task.start, proposal.start) * px,
+    width: item.task.is_milestone ? 0 : (daysBetween(proposal.start, proposal.end) + 1) * px,
+  };
+}
+
+/** The grips inside each end of a bar; never rendered on milestones, which can't resize (AC7). */
+function ResizeHandles() {
+  return (
+    <>
+      <span
+        data-testid="bar-handle-start"
+        className="bar-handle bar-handle-start"
+        data-drag-mode="resize-start"
+        aria-hidden="true"
+      />
+      <span
+        data-testid="bar-handle-end"
+        className="bar-handle bar-handle-end"
+        data-drag-mode="resize-end"
+        aria-hidden="true"
+      />
+    </>
+  );
+}
+
+const TaskBar = memo(function TaskBar(props: {
+  item: ChartItem;
+  zoom: Zoom;
+  onOpen: (id: number) => void;
+}) {
+  const { item, zoom, onOpen } = props;
   const { task, colours } = item;
-  const inside = labelGoesInside(task.name, item.width);
+  const drag = useBarDrag(task, zoom, onOpen);
+  const geometry = drawnGeometry(item, drag.proposal, zoom);
+  const inside = labelGoesInside(task.name, geometry.width);
   const label = (
     <span
       data-testid="bar-label"
@@ -99,9 +148,9 @@ const TaskBar = memo(function TaskBar(props: { item: ChartItem; onOpen: (id: num
     </span>
   );
   const style: CSSProperties = {
-    left: item.x,
+    left: geometry.x,
     top: rowTop(item.row, BAR_HEIGHT),
-    width: item.width,
+    width: geometry.width,
     height: BAR_HEIGHT,
     backgroundColor: colours.fill,
     color: colours.label,
@@ -113,10 +162,10 @@ const TaskBar = memo(function TaskBar(props: { item: ChartItem; onOpen: (id: num
       data-task-id={task.id}
       data-start={task.start}
       data-end={task.end}
-      className={classNames("bar", item)}
+      className={classNames("bar", item, drag.dragging)}
       style={style}
       aria-label={describe(item)}
-      onClick={() => onOpen(task.id)}
+      {...drag.handlers}
     >
       <span className={task.percent_complete > 0 ? "bar-track has-progress" : "bar-track"}>
         <span
@@ -126,6 +175,7 @@ const TaskBar = memo(function TaskBar(props: { item: ChartItem; onOpen: (id: num
         />
       </span>
       {inside && label}
+      <ResizeHandles />
       <span className="bar-aside">
         <CriticalMarker item={item} />
         {!inside && label}
@@ -138,10 +188,13 @@ const TaskBar = memo(function TaskBar(props: { item: ChartItem; onOpen: (id: num
 
 const MilestoneDiamond = memo(function MilestoneDiamond(props: {
   item: ChartItem;
+  zoom: Zoom;
   onOpen: (id: number) => void;
 }) {
-  const { item, onOpen } = props;
+  const { item, zoom, onOpen } = props;
   const { task } = item;
+  const drag = useBarDrag(task, zoom, onOpen);
+  const { x } = drawnGeometry(item, drag.proposal, zoom);
   return (
     <>
       <button
@@ -150,20 +203,20 @@ const MilestoneDiamond = memo(function MilestoneDiamond(props: {
         data-task-id={task.id}
         data-start={task.start}
         data-end={task.end}
-        className={classNames("milestone", item)}
+        className={classNames("milestone", item, drag.dragging)}
         style={{
-          left: item.x - MILESTONE_SIZE / 2,
+          left: x - MILESTONE_SIZE / 2,
           top: rowTop(item.row, MILESTONE_SIZE),
           width: MILESTONE_SIZE,
           height: MILESTONE_SIZE,
           backgroundColor: item.colours.fill,
         }}
         aria-label={describe(item)}
-        onClick={() => onOpen(task.id)}
+        {...drag.handlers}
       />
       <span
         className="milestone-aside"
-        style={{ left: item.x + MILESTONE_REACH + 10, top: item.row * ROW_HEIGHT }}
+        style={{ left: x + MILESTONE_REACH + 10, top: item.row * ROW_HEIGHT }}
       >
         <CriticalMarker item={item} />
         <span data-testid="milestone-label" className="milestone-label" title={task.name}>
@@ -179,13 +232,15 @@ export const Bars = memo(function Bars(props: {
   items: ChartItem[];
   onOpen: (id: number) => void;
 }) {
+  // Drag snapping needs the day width; the chart is always drawn at the store's zoom.
+  const { zoom } = useAppState();
   return (
     <>
       {props.items.map((item) =>
         item.task.is_milestone ? (
-          <MilestoneDiamond key={item.task.id} item={item} onOpen={props.onOpen} />
+          <MilestoneDiamond key={item.task.id} item={item} zoom={zoom} onOpen={props.onOpen} />
         ) : (
-          <TaskBar key={item.task.id} item={item} onOpen={props.onOpen} />
+          <TaskBar key={item.task.id} item={item} zoom={zoom} onOpen={props.onOpen} />
         ),
       )}
     </>

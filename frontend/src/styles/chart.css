@@ -395,6 +395,68 @@
   height: 36px;
 }
 
+/* ---------- Drag and resize (S11) ---------- */
+
+.bar,
+.milestone {
+  /* The pointer drives the drag; the browser must not pan or select text instead. */
+  touch-action: none;
+  user-select: none;
+  cursor: grab;
+}
+
+.bar.dragging,
+.milestone.dragging {
+  z-index: 1;
+  cursor: grabbing;
+  transition: none;
+}
+
+.bar.dragging {
+  box-shadow:
+    0 8px 18px -4px rgba(16, 24, 40, 0.35),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* 8px grips inside each end; a quarter of the bar at most, so a narrow bar can still be moved. */
+.bar-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  width: min(8px, 25%);
+  cursor: ew-resize;
+}
+
+.bar-handle-start {
+  left: 0;
+  border-radius: 6px 0 0 6px;
+}
+
+.bar-handle-end {
+  right: 0;
+  border-radius: 0 6px 6px 0;
+}
+
+.bar-handle::after {
+  position: absolute;
+  top: 7px;
+  bottom: 7px;
+  left: 50%;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: currentColor;
+  opacity: 0;
+  content: "";
+  transition: opacity 120ms ease;
+}
+
+.bar:hover .bar-handle::after,
+.bar.dragging .bar-handle::after {
+  opacity: 0.45;
+}
+
 /* ---------- Critical path (AC14): a ring with a gap plus a marker, never the fill alone ---------- */
 
 .bar.critical,
