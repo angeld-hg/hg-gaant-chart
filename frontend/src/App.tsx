@@ -1,11 +1,14 @@
+import { AppShell } from "./components/shell/AppShell.tsx";
+import { AppProvider } from "./state/store.tsx";
+
 export function appTitle(): string {
   return "Gantt";
 }
 
 export function App() {
   return (
-    <main>
-      <h1>{appTitle()}</h1>
-    </main>
+    <AppProvider>
+      <AppShell />
+    </AppProvider>
   );
 }

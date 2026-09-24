@@ -121,3 +121,14 @@
   - A) Every arrow whose two ends are critical (literal).
   - B) Only arrows with both ends critical and zero link slack. Same result for AC15 fixtures.
 - Recommendation: B (plan assumes it), because it shows exactly the chains that decide the end date.
+
+## D13: How should the e2e console-error check treat Chrome's automatic "Failed to load resource: 4xx" log on expected API rejections?
+- Status: decided
+- Decision: A) Ignore browser 4xx network logs in the e2e console fixture, by user, 2026-09-24. AC26 read as no app errors; 5xx and app console.error still fail.
+- Raised by: implementer S7 (BLOCKED report, 2026-09-24)
+- Context: Chrome logs a console error line for every 4xx fetch. The shared fixture (frontend/e2e/fixtures.ts, S1) fails any test that sees it, so every test that deliberately submits invalid input (S7, S9, S10, S12) fails at teardown. Also decides how AC26 "no console errors" is read.
+- Options:
+  - A) Ignore browser network logs matching /^Failed to load resource: the server responded with a status of 4\d\d/. 5xx and real app console.error still fail. AC26 read as "no app errors". Proven: 12/12 on projects.spec.ts.
+  - B) Strict by default; specs opt in to expected statuses (test.use({ allowHttpStatuses: [409, 422] })). More precise; every rejection spec must opt in.
+  - C) API returns 2xx with an error body. Breaks contract C2 and AC34/AC40 wording.
+- Recommendation: A, because the lines come from the browser, not the app, and 5xx and app errors stay caught.

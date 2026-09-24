@@ -2,7 +2,7 @@
 feature: gantt-chart-manager
 phase: implement
 updated: 2026-09-24
-next: waves: W1 S1 | W2 S2+S3 | W3 S4 | W4 S5 | W5 S6+S7 | W6 S8+S12 | W7 S9+S10+S11 | W8 S13 (now: W5)
+next: waves: W1 S1 | W2 S2+S3 | W3 S4 | W4 S5 | W5 S6+S7 | W6 S8+S12 | W7 S9+S10+S11 | W8 S13 (now: W6)
 verification: required
 ---
 
@@ -51,3 +51,6 @@ This is a fresh repo so we can interate on ideas together to come up with someth
 - 2026-09-24: S4 DONE (pytest 166, mypy/ruff clean, live restart-persistence evidence) verified by elephant; committed
 - 2026-09-24: S5 DONE (126 new tests, pytest 292, live AC12 cascade + AC36 clamp + restart evidence) verified by elephant; committed
 - 2026-09-24: S6 DONE (78 tests, pytest 370, live cross-server byte-identical round trip) verified by elephant; committed backend only (S7 still running)
+- 2026-09-24: S7 implementer stalled (600s watchdog) mid-slice; partial files intact, no servers left; resumed same agent with its context
+- 2026-09-24: S7 BLOCKED on console-4xx fixture issue; D13 decided: ignore browser 4xx network logs (user); routed to S7 implementer with fixtures.ts ownership
+- 2026-09-24: S7 DONE (vitest 116, e2e 14/14 with D13 fixture filter, lint/typecheck clean) verified by elephant; W5 committed
