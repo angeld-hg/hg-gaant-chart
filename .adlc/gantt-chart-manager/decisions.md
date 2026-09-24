@@ -134,7 +134,8 @@
 - Recommendation: A, because the lines come from the browser, not the app, and 5xx and app errors stay caught.
 
 ## D14: Should the AC25 "loads within 2 s" measurement exclude Vite dev-server first-compile time?
-- Status: pending
+- Status: decided
+- Decision: A) Keep dev-server warm-up in the AC25 measurement, by user, 2026-09-24.
 - Raised by: implementer S13a (report, 2026-09-24)
 - Context: On a freshly started Vite dev server the first page load measured 1818 ms (Vite compiling modules on demand); warm loads measure ~580 ms. The spec currently warms the dev server in a throwaway browser context before starting the clock. Cascade redraw is ~25-33 ms against 200 ms either way.
 - Options:
