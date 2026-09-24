@@ -1,8 +1,8 @@
 ---
 feature: gantt-chart-manager
-phase: implement
+phase: review
 updated: 2026-09-24
-next: implement gate with user, then angel:verify
+next: verify gate with user, then angel:review
 verification: required
 ---
 
@@ -66,3 +66,5 @@ This is a fresh repo so we can interate on ideas together to come up with someth
 - 2026-09-24: S13a DONE (perf.spec re-run by elephant: 579 ms load+drag, 24 ms cascade; no src changes); D14 raised (dev-server warm-up in AC25 measurement) - pending
 - 2026-09-24: D14 decided: keep dev-server warm-up (user). S13c DONE (flow.spec AC26; full suite x3: 228/228 on settled tree; one mid-edit failure attributed to concurrent change)
 - 2026-09-24: all 13 slices DONE; elephant ran just check on 34eefbf: lint/typecheck clean, pytest 370, vitest 156, e2e 76/76
+- 2026-09-24: user approved implement gate; verify started
+- 2026-09-24: verification VERIFIED 43/43, no regressions (reviews/verification.md); note: AC16 dep add/remove lacks a committed e2e test
