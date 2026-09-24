@@ -75,3 +75,4 @@ This is a fresh repo so we can interate on ideas together to come up with someth
 - 2026-09-24: CR2 fix BLOCKED on 2 test_roundtrip.py imports lacking Content-Type (now correctly 415); lane widened to that file
 - 2026-09-24: CR2+D16 DONE (pytest 379 verified by elephant) committed
 - 2026-09-24: CR1+CR3 DONE (write queue in store; created_id opens editor; vitest 163 verified by elephant) committed
+- 2026-09-24: CR4+CR6+DD1 DONE; full gate by elephant: lint/typecheck OK, pytest 379, vitest 163, e2e 77/77. All review-1 fixes committed. Round 2: code-review + diff-drift + re-verify (CR1 changed behaviour); old verification moved to verification-1.md

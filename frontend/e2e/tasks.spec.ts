@@ -396,6 +396,58 @@ test("AC10, AC11, AC13: add, reject and remove dependencies from the editor", as
   expect((await project(page, projectId)).dependencies).toHaveLength(1);
 });
 
+test("AC16: adding and removing a dependency updates project end and critical path without a reload", async ({
+  page,
+}) => {
+  const { taskIds } = await openSeeded(page, {
+    name: "Launch",
+    tasks: [
+      { name: "A", start: "2026-10-05", duration: 3 },
+      { name: "B", start: "2026-10-06", duration: 2 },
+      { name: "C", start: "2026-10-05", duration: 4 },
+    ],
+  });
+  const [a, b, c] = [taskIds.A as number, taskIds.B as number, taskIds.C as number];
+  const projectEnd = page.getByTestId("project-end");
+  const arrow = page.locator(`[data-testid=arrow][data-from="${a}"][data-to="${b}"]`);
+  const expectCritical = async (critical: number[], notCritical: number[]) => {
+    for (const id of critical) {
+      await expect(bar(page, id)).toHaveClass(/critical/);
+    }
+    for (const id of notCritical) {
+      await expect(bar(page, id)).not.toHaveClass(/critical/);
+    }
+  };
+
+  // Only C ends on the project end.
+  await expect(projectEnd).toContainText("2026-10-08");
+  await expectCritical([c], [a, b]);
+  // No navigation may happen: a marker on window survives only without a reload.
+  await page.evaluate(() => {
+    (window as unknown as { __noReload: boolean }).__noReload = true;
+  });
+
+  // A -> B pushes B past C: the project end moves and A, B (joined by a zero-slack link) are critical.
+  await openEditor(page, b);
+  await editor(page).getByTestId("predecessor-select").selectOption({ label: "A" });
+  await editor(page).getByTestId("add-predecessor").click();
+  await expectDates(page, b, "2026-10-08", "2026-10-09");
+  await expect(projectEnd).toContainText("2026-10-09");
+  await expectCritical([a, b], [c]);
+  await expect(arrow).toHaveClass(/critical/);
+
+  // Removing A -> B leaves the dates (and so the end) alone, but A no longer drives anything.
+  await editor(page).getByTestId("dependency-item").getByTestId("remove-dependency").click();
+  await expect(arrow).toHaveCount(0);
+  await expectDates(page, b, "2026-10-08", "2026-10-09");
+  await expect(projectEnd).toContainText("2026-10-09");
+  await expectCritical([b], [a, c]);
+
+  expect(
+    await page.evaluate(() => (window as unknown as { __noReload?: boolean }).__noReload),
+  ).toBe(true);
+});
+
 test("AC12, AC16: a duration edit cascades and updates project end and critical path", async ({
   page,
 }) => {

@@ -8,7 +8,7 @@ import type { PaletteColour, Person, ProjectDetail } from "../../api/types.ts";
 import { useActions, useAppState } from "../../state/store.tsx";
 import { ColourPicker, defaultColour } from "./ColourPicker.tsx";
 
-function tasksPhrase(count: number): string {
+function unassignPhrase(count: number): string {
   return count === 1 ? "1 task will" : `${count} tasks will`;
 }
 
@@ -139,7 +139,7 @@ function PersonRow(props: { person: Person; taskCount: number; colours: PaletteC
   async function remove() {
     const confirmed = await actions.confirm({
       title: "Remove person",
-      message: `Remove "${person.name}"? ${tasksPhrase(taskCount)} become unassigned.`,
+      message: `Remove "${person.name}"? ${unassignPhrase(taskCount)} become unassigned.`,
       confirmLabel: "Remove",
     });
     if (confirmed) {

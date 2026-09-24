@@ -1,5 +1,7 @@
 // Task bars and milestone diamonds, one row per task in creation order (AC3, AC7, AC8, AC9, AC42).
-// Every item is memoised on its own props, so a change to one task re-renders only its row.
+// Items are wrapped in `memo`, but Chart rebuilds every ChartItem from each new ProjectDetail,
+// so every mutation re-renders every row: the memo does not skip unchanged ones. AC25's budget
+// is met without that optimisation (D15).
 // Bars and diamonds can be dragged to move them, and bars resized by their edge handles (S11).
 import { type CSSProperties, memo } from "react";
 import type { Task } from "../../api/types.ts";
