@@ -56,3 +56,4 @@ This is a fresh repo so we can interate on ideas together to come up with someth
 - 2026-09-24: S7 DONE (vitest 116, e2e 14/14 with D13 fixture filter, lint/typecheck clean) verified by elephant; W5 committed
 - 2026-09-24: S12 DONE (transfer.spec 6/6 re-run by elephant on isolated ports; byte-identical UI round trip) committed; S8 still running
 - 2026-09-24: S8 DONE (chart.spec 12, full e2e 32/32, vitest 124, lint/typecheck) verified by elephant; screenshot reviewed; W6 committed
+- 2026-09-24: S10 DONE (roster.spec 5; elephant re-run: first run 2/5 in 23s under concurrent S9/S11 load, then 5/5 and 15/15 with --repeat-each=3 -> possible load flakiness, watch in verify). Note: roster drawer and task editor drawer may overlap (S13/review). Committed
