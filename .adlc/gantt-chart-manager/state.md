@@ -1,8 +1,8 @@
 ---
 feature: gantt-chart-manager
-phase: review
+phase: ship
 updated: 2026-09-24
-next: dispatch code-reviewer + drift-checker (diff) in parallel
+next: user runs /angel:ship (PR creation needs user invocation and confirmation)
 verification: required
 ---
 
@@ -79,3 +79,7 @@ This is a fresh repo so we can interate on ideas together to come up with someth
 - 2026-09-24: review round 2: code-review APPROVE (CR7 minor + D17 raised), diff-drift PROCEED; re-verify run 2 VERIFIED 43/43 on 332b5bc (AC25 load-sensitive, A/B shows environment not CR1)
 - 2026-09-24: D17 decided: keep D15, load noise (user); D18 decided: fix CR7 now (user)
 - 2026-09-24: CR7 DONE (createWriteQueue; rename queued; vitest 165; full gate by elephant: pytest 379, vitest 165, e2e 77/77) committed; verify run 3 + check-pr reviewers dispatched
+- 2026-09-24: pre-push code-review round 3 APPROVE (reviews/code-review-3.md); drift round 3 PROCEED (reviews/diff-drift-3.md)
+- 2026-09-24: verify run 3 VERIFIED 43/43 on 4cf26a9 (CR7 proven by unit tests, a sabotage run and a browser race)
+- 2026-09-24: D19 decided: waive console.log hygiene for perf.spec timing prints (user)
+- 2026-09-24: check-pr pre-push: GO (reviews/check-pr.md); review passed; phase ship

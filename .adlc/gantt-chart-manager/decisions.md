@@ -184,3 +184,13 @@
   - A) Fix now: route renameProject through the same queue plus a store test; re-run verify afterwards.
   - B) Waive: record as a known minor issue; ship as is.
 - Recommendation: A, because it is the same class as CR1, the fix is small, and it keeps the "server is the single authority" promise intact.
+
+## D19: Waive the check-pr "no console.log added" hygiene rule for the two timing prints in frontend/e2e/perf.spec.ts?
+- Status: decided
+- Raised by: elephant (check-pr pre-push hygiene gate)
+- Context: perf.spec.ts prints the measured AC25 load and settle timings. It is test output; the app source adds no console.log.
+- Options:
+  - A) Waive: keep them as the test's measurement report.
+  - B) Replace them with Playwright testInfo.annotations.
+- Recommendation: A, because it's a test report, not app code.
+- Decision: A) Waive, by user, 2026-09-24.
