@@ -50,3 +50,4 @@ This is a fresh repo so we can interate on ideas together to come up with someth
 - 2026-09-24: chore DONE: e2e ports/DB/output env-overridable (two concurrent runs shown passing), vitest collects .test.tsx; plan C1 + verification Gaps amended by elephant
 - 2026-09-24: S4 DONE (pytest 166, mypy/ruff clean, live restart-persistence evidence) verified by elephant; committed
 - 2026-09-24: S5 DONE (126 new tests, pytest 292, live AC12 cascade + AC36 clamp + restart evidence) verified by elephant; committed
+- 2026-09-24: S6 DONE (78 tests, pytest 370, live cross-server byte-identical round trip) verified by elephant; committed backend only (S7 still running)
