@@ -85,3 +85,4 @@ This is a fresh repo so we can interate on ideas together to come up with someth
 - 2026-09-24: check-pr pre-push: GO (reviews/check-pr.md); review passed; phase ship
 - 2026-09-24: shipped: PR https://github.com/angeld-hg/hg-gaant-chart/pull/1 opened by user confirmation (not merged); PR body footer removed per on-disk edit
 - 2026-09-24: retro written (retro.md, retro-proposed-edits.md); user approved E1-E7 for the angel plugin via branch+PR on angel-adlc, declined E8; LEARNINGS.md being written
+- 2026-09-24: retro done. angel plugin PR https://github.com/angeld-hg/angel-adlc/pull/1 (E1-E7, v0.3.0, 168 tests passing, not merged)
