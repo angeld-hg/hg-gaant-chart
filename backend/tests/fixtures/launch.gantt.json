@@ -1,0 +1,72 @@
+{
+  "format": "hg-gantt",
+  "version": 1,
+  "project": {
+    "name": "Launch"
+  },
+  "people": [
+    {
+      "key": "p1",
+      "name": "Ana",
+      "colour": "#ea580c"
+    },
+    {
+      "key": "p2",
+      "name": "Ben",
+      "colour": "#2563eb"
+    }
+  ],
+  "tasks": [
+    {
+      "key": "t1",
+      "name": "Design",
+      "start": "2026-10-05",
+      "end": "2026-10-07",
+      "duration": 3,
+      "milestone": false,
+      "percent_complete": 40,
+      "assignee": "p1",
+      "predecessors": []
+    },
+    {
+      "key": "t2",
+      "name": "Café build",
+      "start": "2026-10-08",
+      "end": "2026-10-09",
+      "duration": 2,
+      "milestone": false,
+      "percent_complete": 0,
+      "assignee": "p2",
+      "predecessors": [
+        "t1"
+      ]
+    },
+    {
+      "key": "t3",
+      "name": "Review",
+      "start": "2026-10-09",
+      "end": "2026-10-09",
+      "duration": 0,
+      "milestone": true,
+      "percent_complete": 0,
+      "assignee": null,
+      "predecessors": [
+        "t1",
+        "t2"
+      ]
+    },
+    {
+      "key": "t4",
+      "name": "Ship",
+      "start": "2026-10-12",
+      "end": "2026-10-12",
+      "duration": 1,
+      "milestone": false,
+      "percent_complete": 100,
+      "assignee": "p1",
+      "predecessors": [
+        "t3"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,338 @@
+/* Roster drawer (S10): people list, inline rename, colour swatches and the add form.
+   Uses the design tokens from app.css. */
+
+@keyframes roster-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.roster-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  width: 340px;
+  max-width: 100%;
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  animation: roster-in 160ms ease-out both;
+}
+
+/* ---------- Header ---------- */
+
+.roster-header {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 56px;
+  padding: 0 12px 0 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.roster-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.roster-title {
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.roster-count {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.roster-close {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-subtle);
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+}
+
+.roster-close:hover {
+  background: var(--surface-sunken);
+  color: var(--text);
+}
+
+.roster-close svg,
+.person-action svg,
+.colour-swatch svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------- People list ---------- */
+
+.roster-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px;
+  scrollbar-color: #c9ced9 transparent;
+  scrollbar-width: thin;
+}
+
+.roster-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.roster-empty {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.roster-hint {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.person-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.person-row {
+  border-radius: var(--radius);
+  transition: background-color 120ms ease;
+}
+
+.person-row:hover,
+.person-row:has(:focus-visible),
+.person-row:has(.person-picker) {
+  background: var(--surface-muted);
+}
+
+.person-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 8px 0 10px;
+}
+
+.person-colour {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 0 1px rgba(16, 24, 40, 0.12),
+    0 0 0 3px var(--surface);
+  transition: transform 120ms ease;
+}
+
+.person-colour:hover,
+.person-colour[aria-expanded="true"] {
+  transform: scale(1.12);
+}
+
+.person-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.person-count {
+  flex: none;
+  min-width: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  color: var(--text-subtle);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Rename/remove fade in on hover or keyboard focus (the same pattern as the project list). */
+.person-actions {
+  display: flex;
+  flex: none;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.person-row:hover .person-actions,
+.person-row:has(:focus-visible) .person-actions {
+  opacity: 1;
+}
+
+.person-action {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-subtle);
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+}
+
+.person-action:hover {
+  background: var(--surface-sunken);
+  color: var(--text);
+}
+
+.person-action.danger:hover {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.person-picker {
+  padding: 2px 10px 12px 38px;
+}
+
+/* ---------- Inputs ---------- */
+
+.roster-input {
+  flex: 1;
+  min-width: 0;
+  height: var(--control-height);
+  padding: 0 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-xs);
+  text-overflow: ellipsis;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.roster-input::placeholder {
+  color: var(--text-subtle);
+}
+
+.roster-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+  outline: none;
+}
+
+.person-rename-input {
+  height: 28px;
+  padding: 0 8px;
+}
+
+/* ---------- Colour picker ---------- */
+
+.colour-picker {
+  display: grid;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  grid-template-columns: repeat(6, 28px);
+  gap: 8px;
+}
+
+.colour-swatch {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(16, 24, 40, 0.12);
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.colour-swatch:hover:not(:disabled) {
+  transform: scale(1.1);
+}
+
+.colour-swatch[aria-pressed="true"] {
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 0 4px var(--text);
+}
+
+.colour-swatch svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2.2;
+}
+
+/* ---------- Add form ---------- */
+
+.roster-add {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 20px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--surface-muted);
+}
+
+.roster-section-title {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.roster-add-row {
+  display: flex;
+  gap: 8px;
+}

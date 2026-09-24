@@ -1,0 +1,20 @@
+/* Verifier throwaway (run 3): open the AC16 deps project's task B editor, wait for the drawer to settle, screenshot; report drawer opacity/transform at 0 ms and 800 ms. */
+import { createRequire } from "node:module";
+const require = createRequire("/Users/angel.difo/Library/CloudStorage/OneDrive-Hg/Desktop/HG-Catalyst-Projects/hg-gaant-chart/frontend/package.json");
+const { chromium } = require("@playwright/test");
+const API = `http://localhost:${process.env.GV_PORT ?? 8340}`, WEB = `http://localhost:${process.env.GV_WEB_PORT ?? 5340}`;
+const ps = await (await fetch(API + "/api/projects")).json();
+const p = ps.find((x) => x.name === "AC16 deps");
+const d = await (await fetch(API + `/api/projects/${p.id}`)).json();
+const b = d.tasks.find((t) => t.name === "B").id;
+const browser = await chromium.launch({ channel: "chrome", headless: true });
+const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+await page.goto(`${WEB}/#/projects/${p.id}`);
+await page.getByTestId("chart").waitFor();
+await page.locator(`[data-testid=task-row][data-task-id="${b}"]`).click();
+const look = () => page.evaluate(() => { const e = document.querySelector("[data-testid=task-editor]"); const s = getComputedStyle(e); const r = e.getBoundingClientRect(); return { opacity: s.opacity, transform: s.transform, left: Math.round(r.left) }; });
+console.log("at click:", JSON.stringify(await look()));
+await page.waitForTimeout(800);
+console.log("after 800ms:", JSON.stringify(await look()));
+await page.screenshot({ path: process.argv[2] });
+await browser.close();

@@ -1,0 +1,611 @@
+/* Chart (S8): timeline header, grid, weekend shading, bars, milestones, arrows and the legend.
+   Uses the design tokens from app.css. Geometry (x, width, row tops) comes from inline styles. */
+
+.chart {
+  --critical: #9f1239;
+  --critical-ring: rgba(159, 18, 57, 0.18);
+  --grid-line: #eef0f4;
+  --grid-major: #dde1e9;
+  --row-line: #f1f3f7;
+  --weekend: #f6f7fa;
+  --arrow: #9aa3b5;
+  --end-line: #64748b;
+
+  position: relative;
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+  min-height: 100%;
+  background: var(--surface);
+}
+
+/* ---------- Header ---------- */
+
+.timeline-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  flex: none;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-muted);
+  user-select: none;
+}
+
+.header-tier {
+  position: relative;
+}
+
+.header-tier-top {
+  height: 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.header-tier-bottom {
+  height: 30px;
+}
+
+.header-unit {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  border-left: 1px solid var(--border);
+  /* clip, not hidden: hidden would make each unit a scroll container and break sticky labels. */
+  overflow: clip;
+  white-space: nowrap;
+}
+
+.header-unit-top .header-label {
+  position: sticky;
+  left: calc(var(--panel-width, 0px) + 10px);
+  padding: 0 10px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: -0.005em;
+}
+
+.header-unit-bottom {
+  padding: 0 8px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.zoom-day .header-unit-bottom {
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  padding: 0;
+  border-left-color: transparent;
+}
+
+.header-weekday {
+  color: var(--text-subtle);
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 10px;
+  letter-spacing: 0.04em;
+}
+
+.zoom-day .header-unit-bottom .header-label {
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 550;
+  line-height: 1;
+}
+
+.header-unit-bottom.weekend {
+  background: var(--weekend);
+}
+
+.header-unit-bottom.weekend .header-label {
+  color: var(--text-subtle);
+}
+
+.header-unit-bottom.today .header-label {
+  background: var(--accent);
+  color: #ffffff;
+  font-weight: 650;
+}
+
+.header-unit-bottom.today .header-weekday {
+  color: var(--accent);
+}
+
+.header-today {
+  position: absolute;
+  bottom: -4px;
+  width: 7px;
+  height: 7px;
+  margin-left: -3.5px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px var(--surface);
+  pointer-events: none;
+}
+
+/* ---------- Body: grid, shading, lines ---------- */
+
+.chart-body {
+  position: relative;
+  z-index: 0;
+  flex: 1 0 auto;
+}
+
+.chart-grid {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(to right, var(--grid-line) 1px, transparent 1px);
+  pointer-events: none;
+}
+
+.chart-grid.zoom-month {
+  background-image: none;
+}
+
+.grid-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--grid-line);
+  pointer-events: none;
+}
+
+.grid-line.major {
+  background: var(--grid-major);
+}
+
+.weekend-shade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background-color: var(--weekend);
+  pointer-events: none;
+}
+
+.chart-rows {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  background-image: linear-gradient(to bottom, transparent 35px, var(--row-line) 35px);
+  background-size: 100% 36px;
+  pointer-events: none;
+}
+
+.today-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: linear-gradient(to bottom, var(--accent), rgba(79, 70, 229, 0.25));
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.project-end-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  margin-left: -1px;
+  border-left: 2px dashed var(--end-line);
+  opacity: 0.45;
+}
+
+/* ---------- Arrows ---------- */
+
+.chart-arrows {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.arrow {
+  fill: none;
+  stroke: var(--arrow);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.arrow.critical {
+  stroke: var(--critical);
+  stroke-width: 2.25;
+}
+
+.arrow-head {
+  fill: var(--arrow);
+}
+
+.arrow-head-critical {
+  fill: var(--critical);
+}
+
+/* ---------- Bars ---------- */
+
+@keyframes item-settle {
+  from {
+    box-shadow:
+      0 0 0 5px var(--accent-ring),
+      0 1px 2px rgba(16, 24, 40, 0.14);
+  }
+}
+
+.bar {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  margin: 0;
+  /* No padding: a bar is exactly its dates wide, even when narrower than any padding. */
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  /* A soft sheen over the fill; the fill itself is the inline background-color. */
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 70%);
+  box-shadow:
+    0 1px 2px rgba(16, 24, 40, 0.14),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  text-align: left;
+  transition:
+    box-shadow 120ms ease,
+    filter 120ms ease;
+}
+
+.bar:hover {
+  box-shadow:
+    0 4px 10px -2px rgba(16, 24, 40, 0.28),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+  filter: brightness(1.04) saturate(1.05);
+}
+
+.bar.changed,
+.milestone.changed {
+  animation: item-settle 700ms ease-out;
+}
+
+.bar-track {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* Progress (AC8): a strip along the bottom in the label colour, clear of the text. */
+.bar-track.has-progress::before {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  background: currentColor;
+  opacity: 0.22;
+  content: "";
+}
+
+.bar-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  background: currentColor;
+  opacity: 0.85;
+}
+
+.bar-label {
+  position: relative;
+  padding: 0 8px 1px;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.bar-aside,
+.milestone-aside {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.bar-aside {
+  top: 50%;
+  left: calc(100% + 8px);
+  transform: translateY(-50%);
+}
+
+.bar-label-outside,
+.milestone-label {
+  flex: 0 1 auto;
+  padding: 0;
+  max-width: 240px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 550;
+}
+
+.milestone-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bar-percent {
+  color: var(--text-subtle);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.assignee-tag {
+  display: inline-block;
+  flex: 0 1 auto;
+  max-width: 160px;
+  padding: 3px 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  box-shadow: 0 0 0 1.5px var(--surface);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 14px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ---------- Milestones ---------- */
+
+.milestone {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  border: 1.5px solid var(--surface);
+  border-radius: 3px;
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.3);
+  transform: rotate(45deg);
+  transition:
+    box-shadow 120ms ease,
+    filter 120ms ease;
+}
+
+.milestone:hover {
+  box-shadow: 0 3px 8px rgba(16, 24, 40, 0.35);
+  filter: brightness(1.05);
+}
+
+.milestone-aside {
+  height: 36px;
+}
+
+/* ---------- Drag and resize (S11) ---------- */
+
+.bar,
+.milestone {
+  /* The pointer drives the drag; the browser must not pan or select text instead. */
+  touch-action: none;
+  user-select: none;
+  cursor: grab;
+}
+
+.bar.dragging,
+.milestone.dragging {
+  z-index: 1;
+  cursor: grabbing;
+  transition: none;
+}
+
+.bar.dragging {
+  box-shadow:
+    0 8px 18px -4px rgba(16, 24, 40, 0.35),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* 8px grips inside each end; a quarter of the bar at most, so a narrow bar can still be moved. */
+.bar-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  width: min(8px, 25%);
+  cursor: ew-resize;
+}
+
+.bar-handle-start {
+  left: 0;
+  border-radius: 6px 0 0 6px;
+}
+
+.bar-handle-end {
+  right: 0;
+  border-radius: 0 6px 6px 0;
+}
+
+.bar-handle::after {
+  position: absolute;
+  top: 7px;
+  bottom: 7px;
+  left: 50%;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: currentColor;
+  opacity: 0;
+  content: "";
+  transition: opacity 120ms ease;
+}
+
+.bar:hover .bar-handle::after,
+.bar.dragging .bar-handle::after {
+  opacity: 0.45;
+}
+
+/* ---------- Critical path (AC14): a ring with a gap plus a marker, never the fill alone ---------- */
+
+.bar.critical,
+.milestone.critical {
+  outline: 2px solid var(--critical);
+  outline-offset: 2px;
+}
+
+.bar:focus-visible,
+.milestone:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.bar.critical:focus-visible,
+.milestone.critical:focus-visible {
+  outline-color: var(--critical);
+  box-shadow: 0 0 0 7px var(--accent-ring);
+}
+
+/* Sits first beside the item, on the chart background, so it reads the same on every fill. */
+.critical-marker {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--critical);
+  box-shadow: 0 0 0 3px var(--critical-ring);
+}
+
+/* Clear of the ring (2px gap + 2px line) around a critical item. */
+.bar.critical .bar-aside {
+  left: calc(100% + 12px);
+}
+
+/* ---------- Legend: project end and critical path ---------- */
+
+.chart-legend-dock {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  height: 0;
+  pointer-events: none;
+}
+
+.chart-legend {
+  position: sticky;
+  right: 16px;
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 7px 14px 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(6px);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: auto;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.legend-end strong {
+  color: var(--text);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.legend-icon {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: var(--end-line);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.legend-divider {
+  width: 1px;
+  height: 14px;
+  background: var(--border);
+}
+
+.legend-critical-swatch {
+  width: 16px;
+  height: 9px;
+  border-radius: 3px;
+  background: var(--surface-sunken);
+  outline: 2px solid var(--critical);
+  outline-offset: 1.5px;
+}
+
+/* ---------- Empty project ---------- */
+
+.empty-tasks-prompt {
+  position: absolute;
+  top: 40px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 320px;
+  padding: 24px 24px 22px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+  text-align: center;
+  animation: fade-in 220ms ease-out both;
+}
+
+.empty-tasks-art {
+  width: 120px;
+  height: 48px;
+  margin-bottom: 6px;
+}
+
+.empty-tasks-bar {
+  fill: #e0e3ff;
+}
+
+.empty-tasks-bar.accent {
+  fill: var(--accent);
+  opacity: 0.85;
+}
+
+.empty-tasks-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.empty-tasks-text {
+  margin-bottom: 6px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
