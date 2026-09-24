@@ -17,7 +17,7 @@ TypeScript frontend (`frontend/`). A root `justfile` is the single entry point.
 |---|---|
 | `just install` | `uv sync` in `backend/` and `npm install` in `frontend/` |
 | `just dev` | API on http://localhost:8000 (auto-reload) and Vite on http://localhost:5173. Ctrl-C stops both |
-| `just test` | pytest (backend), then vitest (frontend unit tests in `src/**/*.test.ts`) |
+| `just test` | pytest (backend), then vitest (frontend unit tests in `src/**/*.test.ts` and `src/**/*.test.tsx`, node environment, no DOM) |
 | `just lint` | `ruff check` + `ruff format --check`, then `biome check` |
 | `just format` | apply ruff and biome formatting and safe fixes |
 | `just typecheck` | `mypy` (strict) on `backend/app`, then `tsc --noEmit` |
@@ -29,6 +29,11 @@ TypeScript frontend (`frontend/`). A root `justfile` is the single entry point.
 - `GANTT_DB_PATH` sets the SQLite file. The default is `backend/data/gantt.db` (git-ignored).
 - In dev, Vite proxies `/api` and `/health` to `GANTT_API_URL` (default `http://localhost:8000`).
 - The e2e run starts its own backend with a fresh throwaway DB at `frontend/.e2e-data/e2e.db`.
+  To run several e2e runs at once in one tree, give each its own ports:
+  `GANTT_E2E_API_PORT=8110 GANTT_E2E_WEB_PORT=5190 just e2e`. A non-default port also gets its own
+  DB (`.e2e-data/e2e-<api port>.db`) and output dir (`.e2e-data/test-results-<web port>`); override
+  those with `GANTT_E2E_DB_PATH` and `GANTT_E2E_OUTPUT_DIR`. A busy port fails the run rather than
+  reusing another run's servers.
 
 ## Notes
 

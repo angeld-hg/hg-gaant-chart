@@ -47,3 +47,4 @@ This is a fresh repo so we can interate on ideas together to come up with someth
 - 2026-09-24: S3 DONE (80 timeline tests; vitest 81 total verified by elephant; minor C6 addition HeaderUnit.title)
 - 2026-09-24: discover refreshed (verification.md vs HEAD 4fbe50e); gaps: e2e ports/DB hard-coded (parallel e2e collide), vitest ignores *.test.tsx
 - 2026-09-24: S2 DONE (83 scheduling tests, pytest 84 total, mypy strict clean) verified by elephant; W2 committed with .adlc artifacts; chore (parallel-safe e2e ports) running
+- 2026-09-24: chore DONE: e2e ports/DB/output env-overridable (two concurrent runs shown passing), vitest collects .test.tsx; plan C1 + verification Gaps amended by elephant

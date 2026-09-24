@@ -38,6 +38,7 @@ typecheck:
     cd backend && uv run mypy app
     cd frontend && npx tsc --noEmit
 
+# Parallel runs: set GANTT_E2E_API_PORT, GANTT_E2E_WEB_PORT (and optionally GANTT_E2E_DB_PATH, GANTT_E2E_OUTPUT_DIR)
 # Browser tests: Playwright in installed Google Chrome (backend :8100, Vite :5180)
 e2e:
     cd frontend && npx playwright test
