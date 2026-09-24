@@ -1,0 +1,123 @@
+# Decisions: gantt-chart-manager
+
+## D1: Should dates and durations count every calendar day, or skip weekends?
+- Status: decided
+- Decision: A) Calendar days, by user, 2026-09-24.
+- Raised by: spec-writer (.adlc/gantt-chart-manager/spec.md)
+- Context: Affects duration maths, drag snapping, critical path and test fixtures; changing later touches all of them.
+- Options:
+  - A) Calendar days - every day counts, weekends only shaded. Simplest, easiest to test.
+  - B) Working days (Mon-Fri) - durations skip weekends, no weekend start/end. More realistic, more date-maths edge cases.
+- Recommendation: A, because it keeps the scheduling core small and verifiable while still looking right.
+
+## D2: What happens when an edit or drag would make a task start before its predecessor finishes?
+- Status: decided
+- Decision: A) Auto-push, by user, 2026-09-24.
+- Raised by: spec-writer (.adlc/gantt-chart-manager/spec.md)
+- Context: Defines the core feel of drag-to-reschedule and what AC12 tests.
+- Options:
+  - A) Auto-push - successors cascade later; a task can't move earlier than predecessors allow (snaps to earliest allowed day). Schedule always valid.
+  - B) Block - drop/edit refused, bar snaps back with a message.
+  - C) Allow and flag - conflict saved and drawn red; stored schedules can be invalid.
+- Recommendation: A, because it keeps stored schedules valid and shows off the dependency engine.
+
+## D3: Is a task assigned to free-text names or to people from a per-project roster?
+- Status: decided
+- Decision: B) Per-project roster with colours, by user, 2026-09-24.
+- Raised by: spec-writer (.adlc/gantt-chart-manager/spec.md)
+- Context: A roster enables consistent colours and filtering, but adds CRUD screens and import/export fields.
+- Options:
+  - A) Free-text name per task (at most one). Minimal.
+  - B) Per-project roster (name + colour); task picks at most one person; bars coloured by assignee.
+- Recommendation: B, because colour-by-assignee helps the "look great" goal for modest scope.
+
+## D4: What does importing a valid JSON file do?
+- Status: decided
+- Decision: A) Always create a new project, by user, 2026-09-24.
+- Raised by: spec-writer (.adlc/gantt-chart-manager/spec.md)
+- Context: Whether import can ever destroy data; shapes the round-trip test (AC24).
+- Options:
+  - A) Always create a new project, suffixing clashing names ("Launch (2)"). Never destructive.
+  - B) Choose between new project and replacing an existing one, with confirmation.
+- Recommendation: A, because it is simple, safe, and covers backup/share.
+
+## D5: When a predecessor moves earlier (or shrinks), should its successors follow it back?
+- Status: decided
+- Raised by: elephant (follow-up to D2)
+- Context: D2 auto-pushes successors later; this settles the reverse direction.
+- Options:
+  - A) Push only - successors never move earlier on their own; slack appears instead.
+  - B) Keep chains tight - successors snap back to start right after their predecessor (ASAP).
+- Recommendation: A, because it is predictable and respects user-chosen dates.
+- Decision: A) Push only, by user, 2026-09-24.
+
+## D6: Should a milestone that follows a task sit on the task's end date instead of the day after?
+- Status: decided
+- Decision: B) Milestone sits on predecessors latest end (same day), by user, 2026-09-24.
+- Raised by: spec-reviewer (reviews/spec-review.md)
+- Context: Definitions (earliest allowed start), AC7, AC12, AC14.
+- Options:
+  - A) One rule: successor starts the day after predecessor ends, milestones included. Simple, but a milestone after a Friday task lands on Saturday and adds a day.
+  - B) Milestone's earliest date = its predecessors' latest end (same day); a task after a milestone starts the day after. Matches common Gantt tools; one special case.
+- Recommendation: B, because the diamond sits on the day the work finishes.
+
+## D7: Can people have any colour, or only one from a preset palette?
+- Status: decided
+- Decision: A) Curated preset palette, by user, 2026-09-24.
+- Raised by: spec-reviewer (reviews/spec-review.md)
+- Context: AC30; label readability constraint.
+- Options:
+  - A) Preset palette of about 10-12 colours, each with a paired readable text colour. Validation trivial, contrast testable exhaustively.
+  - B) Free hex picker. Flexible; text colour computed at runtime; may clash with critical/neutral colours.
+- Recommendation: A, because it makes readability a finite, testable list.
+
+## D8: Must project names be unique (case-insensitive) on create/rename, or only on import?
+- Status: decided
+- Decision: A) Unique everywhere, by user, 2026-09-24.
+- Raised by: spec-reviewer (reviews/spec-review.md)
+- Context: AC1, AC2, AC24.
+- Options:
+  - A) Unique everywhere with a visible clash message. Consistent with roster rule and import suffixing.
+  - B) Allow duplicates on create/rename; suffix only on import.
+- Recommendation: A, for consistency.
+
+## D9: When an API write would break a dependency, does the server clamp/cascade or reject?
+- Status: decided
+- Decision: A) Server cascades/clamps atomically, returns changed tasks, by user, 2026-09-24.
+- Raised by: spec-reviewer (reviews/spec-review.md, blocking item 2)
+- Context: The backend contract that every pytest rests on; also decides whether the server is the authority when two tabs are stale.
+- Options:
+  - A) Server applies the same rules as the UI (cascade, clamp, push-only) atomically and returns every changed task; 4xx only for invalid input. Server is the single source of scheduling truth.
+  - B) Server rejects dependency-breaking writes with 4xx; the client computes the cascade and sends all changes.
+- Recommendation: A, because the scheduling engine lives in one place (Python, easy to unit-test) and stale clients can't corrupt data.
+
+## D10: Should the frontend use React, or stay framework-free?
+- Status: decided
+- Decision: A) React 19 + Vite, by user, 2026-09-24.
+- Raised by: planner (plan.md)
+- Context: Forms, drawers, dialogs and a ~450-element chart; affects every frontend slice.
+- Options:
+  - A) React 19 + Vite, no router/state/component libs. Declarative re-render from server state. +2 runtime deps.
+  - B) Vanilla TypeScript with hand-rolled DOM/SVG. Zero deps, much more update code, more state bugs.
+  - C) Preact. React-like, smaller bundle, less common tooling.
+- Recommendation: A (plan assumes it), because the interaction surface is large.
+
+## D11: Should the browser wait for the server's cascade after a drag, or predict it with a TypeScript engine copy?
+- Status: decided
+- Decision: A) Server round trip only, by user, 2026-09-24.
+- Raised by: planner (plan.md)
+- Context: AC25 200 ms budget vs D9 single scheduling authority.
+- Options:
+  - A) Server round trip only. One engine; localhost should fit; S13 measures it.
+  - B) TS mirror engine for instant prediction, reconciled with server. Budget certain; two engines to keep identical.
+- Recommendation: A (plan assumes it); revisit only if S13 fails.
+
+## D12: Should every arrow between two critical tasks be highlighted, or only zero-slack (driving) ones?
+- Status: decided
+- Decision: B) Zero-slack links only, by user, 2026-09-24.
+- Raised by: planner (plan.md)
+- Context: AC14 "critical tasks, and the arrows between them"; a slack link between two critical tasks isn't on the path.
+- Options:
+  - A) Every arrow whose two ends are critical (literal).
+  - B) Only arrows with both ends critical and zero link slack. Same result for AC15 fixtures.
+- Recommendation: B (plan assumes it), because it shows exactly the chains that decide the end date.
