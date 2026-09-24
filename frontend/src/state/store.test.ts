@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import type { MutationResult, ProjectDetail, Task } from "../api/types.ts";
+import type { MutationResult, ProjectDetail, ProjectSummary, Task } from "../api/types.ts";
 import { type AppAction, type AppState, initialState, reducer } from "./reducer.ts";
-import { type ActionResult, createMutator } from "./store.tsx";
+import { type ActionResult, createWriteQueue } from "./store.tsx";
 
 function task(id: number, start: string): Task {
   return {
@@ -34,7 +34,7 @@ function result(project: ProjectDetail, changed: number[], createdId: number | n
 /** A request the test answers by hand, so it controls the order responses arrive in. */
 interface PendingRequest {
   label: string;
-  respond(value: MutationResult): void;
+  respond(value: MutationResult | ProjectSummary): void;
   reject(error: Error): void;
 }
 
@@ -50,11 +50,11 @@ function harness(start: AppState) {
     dispatch({ type: "error-set", message });
     return { ok: false, message };
   };
-  const mutate = createMutator(dispatch, fail);
-  function request(label: string) {
+  const { mutate, renameProject } = createWriteQueue(dispatch, fail);
+  function request<T = MutationResult>(label: string) {
     return () =>
-      new Promise<MutationResult>((respond, reject) => {
-        sent.push({ label, respond, reject });
+      new Promise<T>((respond, reject) => {
+        sent.push({ label, respond: (value) => respond(value as T), reject });
       });
   }
   function pending(label: string): PendingRequest {
@@ -64,12 +64,36 @@ function harness(start: AppState) {
     }
     return found;
   }
-  return { mutate, request, pending, sent, state: () => state };
+  return { mutate, renameProject, request, pending, sent, state: () => state };
 }
 
 async function settle(): Promise<void> {
   for (let i = 0; i < 10; i += 1) {
     await Promise.resolve();
+  }
+}
+
+/**
+ * A network that, of the requests outstanding at each moment, answers the one earliest in
+ * `order` first. With every request in flight at once, responses arrive in exactly that order.
+ */
+async function answerInOrder(
+  h: ReturnType<typeof harness>,
+  responses: Record<string, MutationResult | ProjectSummary>,
+  order: string[],
+): Promise<void> {
+  const answered = new Set<string>();
+  for (let round = 0; round < order.length; round += 1) {
+    const outstanding = h.sent.filter((r) => !answered.has(r.label));
+    const next = order
+      .map((label) => outstanding.find((r) => r.label === label))
+      .find((r) => r !== undefined);
+    if (!next) {
+      break;
+    }
+    answered.add(next.label);
+    next.respond(responses[next.label] as MutationResult | ProjectSummary);
+    await settle();
   }
 }
 
@@ -89,17 +113,8 @@ describe("project mutations (CR1)", () => {
     const x = h.mutate(h.request("X"));
     const y = h.mutate(h.request("Y"));
     await settle();
-    // A network that always answers the newest outstanding request first.
-    const answered = new Set<string>();
-    for (let round = 0; round < 5; round += 1) {
-      const newest = h.sent.filter((r) => !answered.has(r.label)).at(-1);
-      if (!newest) {
-        break;
-      }
-      answered.add(newest.label);
-      newest.respond(responses[newest.label] as MutationResult);
-      await settle();
-    }
+    // The later write is answered first whenever both are outstanding.
+    await answerInOrder(h, responses, ["Y", "X"]);
 
     await expect(Promise.all([x, y])).resolves.toEqual([{ ok: true }, { ok: true }]);
     expect(h.sent.map((r) => r.label)).toEqual(["X", "Y"]);
@@ -135,6 +150,53 @@ describe("project mutations (CR1)", () => {
     await expect(y).resolves.toEqual({ ok: true });
     expect(h.state().current).toBe(afterXY);
     expect(h.state().error).toBe("Dates are out of range.");
+  });
+});
+
+describe("renaming a project (CR7)", () => {
+  const summary: ProjectSummary = { id: 1, name: "Launch", task_count: 2 };
+
+  it("keeps the new name when a task write in flight would land after the rename", async () => {
+    const h = harness({ ...initialState, projects: [summary], current: before });
+    // The task write reads the project before the rename, so its snapshot has the old name.
+    const responses: Record<string, MutationResult | ProjectSummary> = {
+      drag: result(afterX, [10]),
+      rename: { ...summary, name: "Launch v2" },
+    };
+
+    const drag = h.mutate(h.request("drag"));
+    const rename = h.renameProject(h.request<ProjectSummary>("rename"));
+    await settle();
+    // The rename is answered first whenever it is outstanding alongside the task write.
+    await answerInOrder(h, responses, ["rename", "drag"]);
+
+    await expect(Promise.all([drag, rename])).resolves.toEqual([{ ok: true }, { ok: true }]);
+    expect(h.state().projects).toEqual([{ id: 1, name: "Launch v2", task_count: 2 }]);
+    expect(h.state().current?.name).toBe("Launch v2");
+    expect(h.state().current?.tasks).toBe(afterX.tasks);
+    expect(h.sent.map((r) => r.label)).toEqual(["drag", "rename"]);
+  });
+
+  it("sends a task write issued after a rename only once the rename has landed", async () => {
+    const h = harness({ ...initialState, projects: [summary], current: before });
+
+    const rename = h.renameProject(h.request<ProjectSummary>("rename"));
+    const drag = h.mutate(h.request("drag"));
+    await settle();
+    expect(h.sent.map((r) => r.label)).toEqual(["rename"]);
+
+    h.pending("rename").reject(new Error("A project with that name already exists."));
+    await settle();
+    expect(h.sent.map((r) => r.label)).toEqual(["rename", "drag"]);
+    h.pending("drag").respond(result(afterX, [10]));
+
+    await expect(rename).resolves.toEqual({
+      ok: false,
+      message: "A project with that name already exists.",
+    });
+    await expect(drag).resolves.toEqual({ ok: true });
+    expect(h.state().current).toBe(afterX);
+    expect(h.state().projects).toEqual([summary]);
   });
 });
 

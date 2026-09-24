@@ -1,6 +1,7 @@
 // The app store (plan contract C6): a reducer in context plus async actions that talk to the API.
 // Every project-scoped write replaces `state.current` with the server's ProjectDetail, so the
-// client never schedules anything itself (D9, D11). Those writes run one at a time (createMutator).
+// client never schedules anything itself (D9, D11). Those writes and project renames run one at a
+// time (createWriteQueue).
 import {
   createContext,
   type ReactNode,
@@ -109,21 +110,28 @@ export type Mutate = (
   options?: MutateOptions,
 ) => Promise<ActionResult>;
 
+export interface WriteQueue {
+  /** A write that answers with a MutationResult (tasks, dependencies, people). */
+  mutate: Mutate;
+  /** A rename, which answers with the project's new summary. */
+  renameProject(run: () => Promise<ProjectSummary>): Promise<ActionResult>;
+}
+
 /**
- * Project writes go out one at a time, in the order they were issued. Each response is a whole
- * ProjectDetail, so two writes in flight at once could land out of order and leave the older
- * snapshot on screen; waiting for the previous write means the latest one always wins.
+ * Project writes, renames included, go out one at a time, in the order they were issued. Each
+ * write response carries the project's name (and a whole ProjectDetail for task writes), so two
+ * writes in flight at once could land out of order and leave the older state on screen; waiting
+ * for the previous write means the latest one always wins.
  */
-export function createMutator(
+export function createWriteQueue(
   dispatch: (action: AppAction) => void,
   fail: (error: unknown) => ActionResult,
-): Mutate {
+): WriteQueue {
   let previous: Promise<unknown> = Promise.resolve();
-  return (run, options = {}) => {
+  function enqueue<T>(run: () => Promise<T>, apply: (value: T) => void): Promise<ActionResult> {
     const next = previous.then(async (): Promise<ActionResult> => {
       try {
-        const result = await run();
-        dispatch({ type: "mutation-applied", result, ...options });
+        apply(await run());
         return { ok: true };
       } catch (error) {
         return fail(error);
@@ -131,6 +139,12 @@ export function createMutator(
     });
     previous = next;
     return next;
+  }
+  return {
+    mutate: (run, options = {}) =>
+      enqueue(run, (result) => dispatch({ type: "mutation-applied", result, ...options })),
+    renameProject: (run) =>
+      enqueue(run, (project) => dispatch({ type: "project-renamed", project })),
   };
 }
 
@@ -189,7 +203,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    const mutate = createMutator(dispatch, fail);
+    const writes = createWriteQueue(dispatch, fail);
+    const { mutate } = writes;
 
     function openProjectId(): number | null {
       return stateRef.current.current?.id ?? null;
@@ -238,15 +253,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
       },
 
-      async renameProject(id, name) {
-        try {
-          const project = await api.renameProject(id, name);
-          dispatch({ type: "project-renamed", project });
-          return { ok: true };
-        } catch (error) {
-          return fail(error);
-        }
-      },
+      renameProject: (id, name) => writes.renameProject(() => api.renameProject(id, name)),
 
       async deleteProject(id) {
         try {
