@@ -2,7 +2,7 @@
 feature: gantt-chart-manager
 phase: implement
 updated: 2026-09-24
-next: waves: W1 S1 | W2 S2+S3 | W3 S4 | W4 S5 | W5 S6+S7 | W6 S8+S12 | W7 S9+S10+S11 | W8 S13 (now: W6)
+next: waves: W1 S1 | W2 S2+S3 | W3 S4 | W4 S5 | W5 S6+S7 | W6 S8+S12 | W7 S9+S10+S11 | W8 S13 (now: W7)
 verification: required
 ---
 
@@ -55,3 +55,4 @@ This is a fresh repo so we can interate on ideas together to come up with someth
 - 2026-09-24: S7 BLOCKED on console-4xx fixture issue; D13 decided: ignore browser 4xx network logs (user); routed to S7 implementer with fixtures.ts ownership
 - 2026-09-24: S7 DONE (vitest 116, e2e 14/14 with D13 fixture filter, lint/typecheck clean) verified by elephant; W5 committed
 - 2026-09-24: S12 DONE (transfer.spec 6/6 re-run by elephant on isolated ports; byte-identical UI round trip) committed; S8 still running
+- 2026-09-24: S8 DONE (chart.spec 12, full e2e 32/32, vitest 124, lint/typecheck) verified by elephant; screenshot reviewed; W6 committed
