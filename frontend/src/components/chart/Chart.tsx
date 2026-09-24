@@ -218,6 +218,23 @@ export function Chart(props: {
     return () => observer.disconnect();
   }, [scrollerRef]);
 
+  // Moving the earliest task (or a new day) moves range.start, which shifts every date's x. Shift
+  // the scroll by the same amount so the dates on screen stay put and only the edited bar moves.
+  // A zoom change is left to the opening scroll below, which runs after this and sets it outright.
+  const drawnRange = useRef<{ start: string; zoom: Zoom } | null>(null);
+  useLayoutEffect(() => {
+    const previous = drawnRange.current;
+    drawnRange.current = { start: range.start, zoom };
+    const scroller = scrollerOf(scrollerRef, chartRef);
+    if (!scroller || previous === null || previous.zoom !== zoom) {
+      return;
+    }
+    const shift = daysBetween(previous.start, range.start) * PX_PER_DAY[zoom];
+    if (shift !== 0) {
+      scroller.scrollLeft -= shift;
+    }
+  }, [range.start, zoom, scrollerRef]);
+
   // Open at the earliest task (AC43) when the project opens and whenever the zoom changes; later
   // edits and resizes keep the user's scroll position. The latest tasks are read through a ref.
   const latest = useRef({ tasks: project.tasks, today });

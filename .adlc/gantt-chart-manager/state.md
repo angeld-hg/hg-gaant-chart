@@ -2,7 +2,7 @@
 feature: gantt-chart-manager
 phase: implement
 updated: 2026-09-24
-next: waves: W1 S1 | W2 S2+S3 | W3 S4 | W4 S5 | W5 S6+S7 | W6 S8+S12 | W7 S9+S10+S11 | W8 S13 (now: W7)
+next: waves: W1 S1 | W2 S2+S3 | W3 S4 | W4 S5 | W5 S6+S7 | W6 S8+S12 | W7 S9+S10+S11 | W8 S13 (now: W8)
 verification: required
 ---
 
@@ -59,3 +59,4 @@ This is a fresh repo so we can interate on ideas together to come up with someth
 - 2026-09-24: S10 DONE (roster.spec 5; elephant re-run: first run 2/5 in 23s under concurrent S9/S11 load, then 5/5 and 15/15 with --repeat-each=3 -> possible load flakiness, watch in verify). Note: roster drawer and task editor drawer may overlap (S13/review). Committed
 - 2026-09-24: S11 DONE (drag.spec 15 + chart.spec 12 = 27/27 re-run by elephant) committed; found timeline-shift glitch when earliest task moves (Chart.tsx scrollLeft compensation) -> fix routed to implementer
 - 2026-09-24: S9 DONE (tasks.spec 17 re-run by elephant, vitest 153); A->A not offered in UI (API rejects; plan test list contradiction noted) committed; W7 complete; Chart.tsx scroll fix still running
+- 2026-09-24: scroll-shift fix DONE (chart-scroll.spec 2, failed first). Integrated gate by elephant: lint/typecheck OK, pytest 370, vitest 153, e2e 71/71. Committed; S13 dispatched
