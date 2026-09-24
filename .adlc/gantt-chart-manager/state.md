@@ -1,8 +1,8 @@
 ---
 feature: gantt-chart-manager
-phase: ship
+phase: shipped
 updated: 2026-09-24
-next: user runs /angel:ship (PR creation needs user invocation and confirmation)
+next: run /angel:retro; watch the PR with /angel:check-pr
 verification: required
 ---
 
@@ -83,3 +83,4 @@ This is a fresh repo so we can interate on ideas together to come up with someth
 - 2026-09-24: verify run 3 VERIFIED 43/43 on 4cf26a9 (CR7 proven by unit tests, a sabotage run and a browser race)
 - 2026-09-24: D19 decided: waive console.log hygiene for perf.spec timing prints (user)
 - 2026-09-24: check-pr pre-push: GO (reviews/check-pr.md); review passed; phase ship
+- 2026-09-24: shipped: PR https://github.com/angeld-hg/hg-gaant-chart/pull/1 opened by user confirmation (not merged); PR body footer removed per on-disk edit
