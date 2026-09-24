@@ -2,7 +2,7 @@
 feature: gantt-chart-manager
 phase: implement
 updated: 2026-09-24
-next: waves: W1 S1 | W2 S2+S3 | W3 S4 | W4 S5 | W5 S6+S7 | W6 S8+S12 | W7 S9+S10+S11 | W8 S13 (now: W4)
+next: waves: W1 S1 | W2 S2+S3 | W3 S4 | W4 S5 | W5 S6+S7 | W6 S8+S12 | W7 S9+S10+S11 | W8 S13 (now: W5)
 verification: required
 ---
 
@@ -49,3 +49,4 @@ This is a fresh repo so we can interate on ideas together to come up with someth
 - 2026-09-24: S2 DONE (83 scheduling tests, pytest 84 total, mypy strict clean) verified by elephant; W2 committed with .adlc artifacts; chore (parallel-safe e2e ports) running
 - 2026-09-24: chore DONE: e2e ports/DB/output env-overridable (two concurrent runs shown passing), vitest collects .test.tsx; plan C1 + verification Gaps amended by elephant
 - 2026-09-24: S4 DONE (pytest 166, mypy/ruff clean, live restart-persistence evidence) verified by elephant; committed
+- 2026-09-24: S5 DONE (126 new tests, pytest 292, live AC12 cascade + AC36 clamp + restart evidence) verified by elephant; committed
