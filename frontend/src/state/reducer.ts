@@ -144,11 +144,16 @@ export function reducer(state: AppState, action: AppAction): AppState {
     case "error-cleared":
       return { ...state, error: null };
 
+    // The editor and roster drawers share the right edge, so opening one closes the other.
     case "editor-set":
-      return { ...state, editor: action.editor };
+      return {
+        ...state,
+        editor: action.editor,
+        rosterOpen: action.editor === null ? state.rosterOpen : false,
+      };
 
     case "roster-set":
-      return { ...state, rosterOpen: action.open };
+      return { ...state, rosterOpen: action.open, editor: action.open ? null : state.editor };
 
     case "confirm-set":
       return { ...state, confirm: action.confirm };

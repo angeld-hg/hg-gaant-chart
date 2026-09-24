@@ -275,6 +275,34 @@ describe("ui flags", () => {
     expect(reducer(open, { type: "roster-set", open: false }).rosterOpen).toBe(false);
   });
 
+  // Both drawers sit on the right edge of the project view, so only one is open at a time.
+  it("closes the roster when the editor opens, on a task or a new draft", () => {
+    const rosterOpen = withState({ rosterOpen: true });
+
+    const onTask = reducer(rosterOpen, { type: "editor-set", editor: { taskId: 4 } });
+    expect(onTask.editor).toEqual({ taskId: 4 });
+    expect(onTask.rosterOpen).toBe(false);
+
+    const onDraft = reducer(rosterOpen, { type: "editor-set", editor: { taskId: "new" } });
+    expect(onDraft.rosterOpen).toBe(false);
+  });
+
+  it("closes the editor when the roster opens", () => {
+    const editing = withState({ editor: { taskId: 4 } });
+
+    const open = reducer(editing, { type: "roster-set", open: true });
+    expect(open.rosterOpen).toBe(true);
+    expect(open.editor).toBeNull();
+  });
+
+  it("leaves the other drawer alone when one closes", () => {
+    const rosterOpen = withState({ rosterOpen: true });
+    expect(reducer(rosterOpen, { type: "editor-set", editor: null }).rosterOpen).toBe(true);
+
+    const editing = withState({ editor: { taskId: 4 } });
+    expect(reducer(editing, { type: "roster-set", open: false }).editor).toEqual({ taskId: 4 });
+  });
+
   it("shows and hides the confirmation dialog", () => {
     const confirm = { title: "Delete project", message: "Sure?", confirmLabel: "Delete" };
     const shown = reducer(initialState, { type: "confirm-set", confirm });

@@ -60,3 +60,6 @@ This is a fresh repo so we can interate on ideas together to come up with someth
 - 2026-09-24: S11 DONE (drag.spec 15 + chart.spec 12 = 27/27 re-run by elephant) committed; found timeline-shift glitch when earliest task moves (Chart.tsx scrollLeft compensation) -> fix routed to implementer
 - 2026-09-24: S9 DONE (tasks.spec 17 re-run by elephant, vitest 153); A->A not offered in UI (API rejects; plan test list contradiction noted) committed; W7 complete; Chart.tsx scroll fix still running
 - 2026-09-24: scroll-shift fix DONE (chart-scroll.spec 2, failed first). Integrated gate by elephant: lint/typecheck OK, pytest 370, vitest 153, e2e 71/71. Committed; S13 dispatched
+- 2026-09-24: S13 implementer stalled (600s watchdog) with no files written; resumed same agent
+- 2026-09-24: S13 stalled again on resume (nothing written); split into S13a perf (AC25), S13b layout+drawer overlap (AC37), S13c flow+flakiness (AC26), fresh agents in parallel with disjoint fix lanes
+- 2026-09-24: S13b DONE (layout.spec 3/3 re-run by elephant; drawers now mutually exclusive via reducer; AC37 already met by CSS) committed
