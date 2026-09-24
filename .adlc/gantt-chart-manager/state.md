@@ -63,3 +63,4 @@ This is a fresh repo so we can interate on ideas together to come up with someth
 - 2026-09-24: S13 implementer stalled (600s watchdog) with no files written; resumed same agent
 - 2026-09-24: S13 stalled again on resume (nothing written); split into S13a perf (AC25), S13b layout+drawer overlap (AC37), S13c flow+flakiness (AC26), fresh agents in parallel with disjoint fix lanes
 - 2026-09-24: S13b DONE (layout.spec 3/3 re-run by elephant; drawers now mutually exclusive via reducer; AC37 already met by CSS) committed
+- 2026-09-24: S13a DONE (perf.spec re-run by elephant: 579 ms load+drag, 24 ms cascade; no src changes); D14 raised (dev-server warm-up in AC25 measurement) - pending

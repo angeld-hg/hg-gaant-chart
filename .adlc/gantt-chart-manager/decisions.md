@@ -132,3 +132,13 @@
   - B) Strict by default; specs opt in to expected statuses (test.use({ allowHttpStatuses: [409, 422] })). More precise; every rejection spec must opt in.
   - C) API returns 2xx with an error body. Breaks contract C2 and AC34/AC40 wording.
 - Recommendation: A, because the lines come from the browser, not the app, and 5xx and app errors stay caught.
+
+## D14: Should the AC25 "loads within 2 s" measurement exclude Vite dev-server first-compile time?
+- Status: pending
+- Raised by: implementer S13a (report, 2026-09-24)
+- Context: On a freshly started Vite dev server the first page load measured 1818 ms (Vite compiling modules on demand); warm loads measure ~580 ms. The spec currently warms the dev server in a throwaway browser context before starting the clock. Cascade redraw is ~25-33 ms against 200 ms either way.
+- Options:
+  - A) Keep the dev-server warm-up. Measures app performance, not dev tooling. Already passing.
+  - B) Measure against a production build (vite build + preview) with no warm-up. Most honest "real user" number; adds a build step and a preview server to the perf run.
+  - C) Cold dev server, no warm-up. Strictest, but it measures Vite and sits close to the budget (flaky).
+- Recommendation: A, because the dev-compile cost isn't something users of a built app would ever pay, and the margin (580 ms vs 2000 ms) is wide.
