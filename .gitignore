@@ -216,3 +216,13 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+.adlc
+
+# Gantt chart manager
+node_modules/
+frontend/.e2e-data/
+frontend/test-results/
+frontend/playwright-report/
+backend/data/
+*.db
