@@ -73,5 +73,3 @@ just check          # lint, typecheck, pytest, vitest, Playwright e2e (installed
 just dev            # API + Vite; open the printed URL
 ```
 Manual demo: create a project, add three chained tasks, open People and add two people, assign them, then drag the first bar right. The successors cascade and the critical ring moves. Switch between Day, Week and Month, then Export and Import the file (it arrives as "Name (2)").
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
