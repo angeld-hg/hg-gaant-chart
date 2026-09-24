@@ -54,3 +54,4 @@ This is a fresh repo so we can interate on ideas together to come up with someth
 - 2026-09-24: S7 implementer stalled (600s watchdog) mid-slice; partial files intact, no servers left; resumed same agent with its context
 - 2026-09-24: S7 BLOCKED on console-4xx fixture issue; D13 decided: ignore browser 4xx network logs (user); routed to S7 implementer with fixtures.ts ownership
 - 2026-09-24: S7 DONE (vitest 116, e2e 14/14 with D13 fixture filter, lint/typecheck clean) verified by elephant; W5 committed
+- 2026-09-24: S12 DONE (transfer.spec 6/6 re-run by elephant on isolated ports; byte-identical UI round trip) committed; S8 still running
